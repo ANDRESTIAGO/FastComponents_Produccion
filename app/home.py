@@ -12,10 +12,9 @@ csv_file = "componentes.csv"
 prueba_file = "pruebas.csv"
 csv_eliminados = "eliminados.csv"
 
-@router.get("/home", response_class=HTMLResponse)
-async def ver_home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
+@router.get("/homeAutenticacion", response_class=HTMLResponse)
+async def ver_homeAutenticacion(request: Request):
+    return templates.TemplateResponse("homeAutenticacion.html", {"request": request})
 
 @router.get("/", response_class=HTMLResponse)
 async def ver_home(request: Request):
