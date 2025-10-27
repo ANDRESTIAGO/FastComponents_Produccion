@@ -6,11 +6,28 @@ import pandas.errors
 import numpy as np
 from models import Componente, ComponenteActualizado, ComponenteConId, Orden
 from typing import Optional
+from operations import *
 templates = Jinja2Templates(directory="templates")
 router = APIRouter()
 csv_file = "componentes.csv"
 prueba_file = "pruebas.csv"
 csv_eliminados = "eliminados.csv"
+
+def get_current_user(request: Request):
+    """
+    Devuelve el nombre de usuario si está logueado, o None.
+    """
+    return request.session.get("username")
+
+def require_login(request: Request):
+    """
+    Usar al inicio de endpoints que deban estar protegidos.
+    Si no hay sesión, redirige a /login.
+    """
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return None
 
 @router.get("/homeAutenticacion", response_class=HTMLResponse)
 async def ver_homeAutenticacion(request: Request):
@@ -109,6 +126,8 @@ async def ver_orden(request: Request):
         "orden.html", {"request": request, "componentes": componentes}
     )
 #-----------------------------------------------------------------------------------------------------
+
+"""
 @router.get("/add", response_class=HTMLResponse)
 async def ver_add(request: Request):
     df = pd.read_csv("componentes.csv")
@@ -171,6 +190,82 @@ async def enviar_add(
     orden.to_csv(orden_file, index=False)
 
     return RedirectResponse(url="/orden", status_code=303)
+
+"""
+
+@router.post("/add_con_usuario")
+async def enviar_add_con_usuario(request: Request,
+    nombre_orden: str = Form(...),
+    motherboard_id: int = Form(...),
+    cpu_id: int = Form(...),
+    ram_id: int = Form(...),
+    gpu_id: int = Form(...),
+    disco_id: int = Form(...)
+):
+    # Verificar sesion
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+
+    df = pd.read_csv("componentes.csv")
+    orden_file = ORDEN_CSV
+
+    # buscar componentes por 'id' (si tu archivo componentes.csv no incluye 'id' debes adaptarlo)
+    mb = df[df["id"] == motherboard_id].iloc[0]
+    cpu = df[df["id"] == cpu_id].iloc[0]
+    ram = df[df["id"] == ram_id].iloc[0]
+    gpu = df[df["id"] == gpu_id].iloc[0]
+    disco = df[df["id"] == disco_id].iloc[0]
+
+    # compatibilidad (igual que antes)
+    if cpu["socket"] != mb["socket"]:
+        return RedirectResponse(url="/cpu-incompa", status_code=303)
+    if "tipo_ram" in mb and "tipo_ram" in ram and ram["tipo_ram"] != mb["tipo_ram"]:
+        return RedirectResponse(url="/ram-incompa", status_code=303)
+
+    # asegurar orden.csv con columna 'usuario'
+    try:
+        orden = pd.read_csv(orden_file)
+    except FileNotFoundError:
+        orden = pd.DataFrame(columns=["usuario","orden", "id", "nombre", "tipo", "marca", "modelo"])
+
+    seleccionados = pd.DataFrame([
+        {"usuario": username, "orden": nombre_orden, **mb.to_dict()},
+        {"usuario": username, "orden": nombre_orden, **cpu.to_dict()},
+        {"usuario": username, "orden": nombre_orden, **ram.to_dict()},
+        {"usuario": username, "orden": nombre_orden, **gpu.to_dict()},
+        {"usuario": username, "orden": nombre_orden, **disco.to_dict()}
+    ])
+
+    orden = pd.concat([orden, seleccionados], ignore_index=True)
+    orden.to_csv(orden_file, index=False)
+
+    return RedirectResponse(url="/orden", status_code=303)
+
+@router.get("/orden_usuario", response_class=HTMLResponse)
+async def ver_orden_usuario(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+
+    orden_file = ORDEN_CSV
+    try:
+        df = pd.read_csv(orden_file)
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=["usuario","orden", "id", "nombre", "tipo", "marca", "modelo"])
+
+    # filtrar por usuario
+    df_user = df[df["usuario"] == username]
+    ordenes_agrupadas = {}
+    for _, row in df_user.iterrows():
+        nombre_orden = row["orden"]
+        if nombre_orden not in ordenes_agrupadas:
+            ordenes_agrupadas[nombre_orden] = []
+        # convertir row a dict y quitar 'usuario' si no quieres mostrarlo
+        d = row.to_dict()
+        ordenes_agrupadas[nombre_orden].append(d)
+
+    return templates.TemplateResponse("ordenes_usuario.html", {"request": request, "ordenes": ordenes_agrupadas})
 
 @router.get("/cpu-incompa", response_class=HTMLResponse)
 async def ver_cpu_incompa(request: Request):
@@ -293,3 +388,70 @@ async def ver_ordenes(request: Request):
         "orden.html",
         {"request": request, "ordenes": ordenes_agrupadas}
     )
+
+#----------------------LOGIN-----------------------
+@router.get("/registro", response_class=HTMLResponse)
+async def ver_registro(request: Request):
+    return templates.TemplateResponse("registro.html", {"request": request})
+
+@router.post("/registro")
+async def procesar_registro(request: Request,
+                            nombre_usuario: str = Form(...),
+                            correo: str = Form(...),
+                            contraseña: str = Form(...),
+                            contraseña2: str = Form(...)):
+    # validaciones simples
+    if contraseña != contraseña2:
+        return templates.TemplateResponse("registro.html", {"request": request, "error": "Las contraseñas no coinciden."})
+    try:
+        create_user(nombre_usuario.strip(), correo.strip(), contraseña)
+    except ValueError as e:
+        return templates.TemplateResponse("registro.html", {"request": request, "error": str(e)})
+    # auto-login tras registro
+    request.session["username"] = nombre_usuario.strip()
+    return RedirectResponse(url="/homeAutenticacion", status_code=303)
+
+@router.get("/login", response_class=HTMLResponse)
+async def ver_login(request: Request):
+    # si ya está logueado, redirige al home autenticado
+    if get_current_user(request):
+        return RedirectResponse(url="/homeAutenticacion", status_code=303)
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@router.post("/login")
+async def procesar_login(request: Request, nombre_usuario: str = Form(...), contraseña: str = Form(...)):
+    user = get_user_by_username(nombre_usuario.strip())
+    if not user:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Usuario o contraseña incorrectos."})
+    if not verify_password(contraseña, user["contraseña_hash"]):
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Usuario o contraseña incorrectos."})
+    # guardar sesión
+    request.session["username"] = nombre_usuario.strip()
+    return RedirectResponse(url="/homeAutenticacion", status_code=303)
+
+@router.get("/logout")
+async def logout(request: Request):
+    request.session.pop("username", None)
+    return RedirectResponse(url="/login", status_code=303)
+
+@router.get("/cambiar_contraseña", response_class=HTMLResponse)
+async def ver_cambiar_contrasena(request: Request):
+    if not get_current_user(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("cambiar_contraseña.html", {"request": request})
+
+@router.post("/cambiar_contraseña")
+async def procesar_cambiar_contrasena(request: Request,
+                                     current_password: str = Form(...),
+                                     new_password: str = Form(...),
+                                     new_password2: str = Form(...)):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    user = get_user_by_username(username)
+    if not verify_password(current_password, user["contraseña_hash"]):
+        return templates.TemplateResponse("cambiar_contraseña.html", {"request": request, "error": "La contraseña actual es incorrecta."})
+    if new_password != new_password2:
+        return templates.TemplateResponse("cambiar_contraseña.html", {"request": request, "error": "Las contraseñas nuevas no coinciden."})
+    update_user_password(username, new_password)
+    return templates.TemplateResponse("cambiar_contraseña.html", {"request": request, "success": "Contraseña actualizada correctamente."})
