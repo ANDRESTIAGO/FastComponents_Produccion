@@ -1,8 +1,14 @@
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import *
+from models import *
 from datetime import datetime
 from typing import List, Optional
+import bcrypt
+import os
+import pandas as pd
+
+USERS_CSV = "usuarios.csv"
+ORDEN_CSV = "orden.csv"
 
 async def crear_componente(comp: Componente, session: AsyncSession) -> Componente:
     session.add(comp)
@@ -41,6 +47,56 @@ async def eliminar_componente(id: int, session: AsyncSession) -> Optional[Compon
     await session.commit()
     return comp
 
+#---------------------LOGIN---------------------------------------
+
+def hash_password(plain_password: str) -> str:
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(plain_password.encode("utf-8"), salt)
+    return hashed.decode()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        return False
+    
+def ensure_users_csv_exists():
+    if not os.path.exists(USERS_CSV):
+        df = pd.DataFrame(columns=["id","nombre_usuario","correo","contraseña_hash"])
+        df.to_csv(USERS_CSV, index=False)
+
+def get_user_by_username(username: str):
+    ensure_users_csv_exists()
+    df = pd.read_csv(USERS_CSV)
+    row = df[df["nombre_usuario"] == username]
+    if row.empty:
+        return None
+    return row.iloc[0].to_dict()
+
+def create_user(nombre_usuario: str, correo: str, plain_password: str):
+    ensure_users_csv_exists()
+    df = pd.read_csv(USERS_CSV)
+    if (df["nombre_usuario"] == nombre_usuario).any():
+        raise ValueError("Nombre de usuario ya existe")
+    next_id = int(df["id"].max()) + 1 if not df.empty else 1
+    hashed = hash_password(plain_password)
+    df_new = pd.DataFrame([{"id": next_id, "nombre_usuario": nombre_usuario, "correo": correo, "contraseña_hash": hashed}])
+    df = pd.concat([df, df_new], ignore_index=True)
+    df.to_csv(USERS_CSV, index=False)
+    return next_id
+
+def update_user_password(username: str, new_plain_password: str):
+    ensure_users_csv_exists()
+    df = pd.read_csv(USERS_CSV)
+    idx = df[df["nombre_usuario"] == username].index
+    if idx.empty:
+        raise ValueError("Usuario no encontrado")
+    df.loc[idx, "contraseña_hash"] = hash_password(new_plain_password)
+    df.to_csv(USERS_CSV, index=False)
+    return True
+
+
+"""
 async def crear_distribuidor(distri: Distribuidores, session: AsyncSession) -> Distribuidores:
     session.add(distri)
     await session.commit()
@@ -76,3 +132,4 @@ async def eliminar_distribuidor(id: int, session: AsyncSession) -> Optional[Dist
     await session.delete(dist)
     await session.commit()
     return dist
+"""
