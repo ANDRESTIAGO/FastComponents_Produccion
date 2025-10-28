@@ -164,11 +164,13 @@ async def ver_orden(request: Request):
     )
 #-----------------------------------------------------------------------------------------------------
 
-
 @router.get("/add", response_class=HTMLResponse)
 async def ver_add(request: Request):
-    df = pd.read_csv("componentes.csv")
+    correo = get_current_user(request)
+    if not correo:
+        return RedirectResponse(url="/login", status_code=303)
 
+    df = pd.read_csv("componentes.csv")
     motherboards = df[df["tipo"] == "Motherboard"].to_dict(orient="records")
     cpus = df[df["tipo"] == "CPU"].to_dict(orient="records")
     rams = df[df["tipo"] == "RAM"].to_dict(orient="records")
@@ -181,13 +183,15 @@ async def ver_add(request: Request):
         "cpus": cpus,
         "rams": rams,
         "gpus": gpus,
-        "discos": discos
+        "discos": discos,
+        "correo": correo
     })
 
 
 
 @router.post("/add")
 async def enviar_add(
+    request: Request,
     nombre_orden: str = Form(...),
     motherboard_id: int = Form(...),
     cpu_id: int = Form(...),
@@ -195,6 +199,11 @@ async def enviar_add(
     gpu_id: int = Form(...),
     disco_id: int = Form(...)
 ):
+
+    correo = get_current_user(request)
+    if not correo:
+        return RedirectResponse(url="/login", status_code=303)
+
     df = pd.read_csv("componentes.csv")
     orden_file = "orden.csv"
 
@@ -206,27 +215,28 @@ async def enviar_add(
 
     if cpu["socket"] != mb["socket"]:
         return RedirectResponse(url="/cpu-incompa", status_code=303)
-
     if "tipo_ram" in mb and "tipo_ram" in ram and ram["tipo_ram"] != mb["tipo_ram"]:
         return RedirectResponse(url="/ram-incompa", status_code=303)
 
     try:
         orden = pd.read_csv(orden_file)
     except FileNotFoundError:
-        orden = pd.DataFrame(columns=["orden", "id", "nombre", "tipo", "marca", "modelo"])
+        orden = pd.DataFrame(columns=[
+            "correo_usuario", "orden", "id", "nombre", "tipo", "marca", "modelo"
+        ])
 
     seleccionados = pd.DataFrame([
-        {"orden": nombre_orden, **mb.to_dict()},
-        {"orden": nombre_orden, **cpu.to_dict()},
-        {"orden": nombre_orden, **ram.to_dict()},
-        {"orden": nombre_orden, **gpu.to_dict()},
-        {"orden": nombre_orden, **disco.to_dict()}
+        {"correo_usuario": correo, "orden": nombre_orden, **mb.to_dict()},
+        {"correo_usuario": correo, "orden": nombre_orden, **cpu.to_dict()},
+        {"correo_usuario": correo, "orden": nombre_orden, **ram.to_dict()},
+        {"correo_usuario": correo, "orden": nombre_orden, **gpu.to_dict()},
+        {"correo_usuario": correo, "orden": nombre_orden, **disco.to_dict()}
     ])
 
     orden = pd.concat([orden, seleccionados], ignore_index=True)
     orden.to_csv(orden_file, index=False)
 
-    return RedirectResponse(url="/orden", status_code=303)
+    return RedirectResponse(url="/ordenes", status_code=303)
 
 
 
@@ -422,27 +432,40 @@ async def ver_menu(request: Request):
 
 @router.get("/ordenes", response_class=HTMLResponse)
 async def ver_ordenes(request: Request):
-    username = get_current_user(request)
-    if not username:
+
+    correo = get_current_user(request)
+    if not correo:
         return RedirectResponse(url="/login", status_code=303)
+
     orden_file = "orden.csv"
 
     try:
         df = pd.read_csv(orden_file)
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["orden", "id", "nombre", "tipo", "marca", "modelo"])
+        df = pd.DataFrame(columns=[
+            "correo_usuario", "orden", "id", "nombre", "tipo", "marca", "modelo"
+        ])
+
+    df_usuario = df[df["correo_usuario"] == correo]
+
 
     ordenes_agrupadas = {}
-    for _, row in df.iterrows():
+    for _, row in df_usuario.iterrows():
         nombre_orden = row["orden"]
         if nombre_orden not in ordenes_agrupadas:
             ordenes_agrupadas[nombre_orden] = []
         ordenes_agrupadas[nombre_orden].append(row.to_dict())
 
+
     return templates.TemplateResponse(
         "orden.html",
-        {"request": request, "ordenes": ordenes_agrupadas}
+        {
+            "request": request,
+            "ordenes": ordenes_agrupadas,
+            "correo": correo, 
+        }
     )
+
 
 #----------------------LOGIN-----------------------
 @router.get("/registro", response_class=HTMLResponse)
