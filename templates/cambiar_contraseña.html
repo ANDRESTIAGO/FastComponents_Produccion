@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Cambiar Contraseña{% endblock %}
+{% block content %}
+<h2>Cambiar contraseña</h2>
+
+{% if error %}
+  <div class="error">{{ error }}</div>
+{% endif %}
+{% if success %}
+  <div class="success">{{ success }}</div>
+{% endif %}
+
+<form method="post" action="/cambiar_contraseña">
+  <label>Contraseña actual</label><br>
+  <input type="password" name="current_password" required><br>
+  <label>Nueva contraseña</label><br>
+  <input type="password" name="new_password" required><br>
+  <label>Confirmar nueva contraseña</label><br>
+  <input type="password" name="new_password2" required><br><br>
+  <button type="submit">Actualizar contraseña</button>
+</form>
+{% endblock %}

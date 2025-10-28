@@ -7,6 +7,7 @@ import numpy as np
 from models import Componente, ComponenteActualizado, ComponenteConId, Orden
 from typing import Optional
 from operations import *
+from fastapi.responses import RedirectResponse
 templates = Jinja2Templates(directory="templates")
 router = APIRouter()
 csv_file = "componentes.csv"
@@ -17,7 +18,7 @@ def get_current_user(request: Request):
     """
     Devuelve el nombre de usuario si está logueado, o None.
     """
-    return request.session.get("username")
+    return request.session.get("correo")
 
 def require_login(request: Request):
     """
@@ -31,14 +32,31 @@ def require_login(request: Request):
 
 @router.get("/homeAutenticacion", response_class=HTMLResponse)
 async def ver_homeAutenticacion(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
     return templates.TemplateResponse("homeAutenticacion.html", {"request": request})
+@router.get("/home", response_class=HTMLResponse)
+async def ver_homeAutenticacion(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 @router.get("/", response_class=HTMLResponse)
 async def ver_home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    username = request.session.get("correo")  # obtiene usuario de la sesión
+    if username:
+        # Si ya está autenticado, mostrar el home autenticado
+        return RedirectResponse(url="Autenticacion", status_code=303)
+    else:
+        # Si no ha iniciado sesión, enviar al login
+        return RedirectResponse(url="/home", status_code=303)
 
 @router.get("/info", response_class=HTMLResponse)
 async def leer_info(request:Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
     csv_file = "componentes.csv"
     sesiones = pd.read_csv(csv_file)
     sesiones["id"] = sesiones.index
@@ -47,6 +65,10 @@ async def leer_info(request:Request):
 
 @router.get("/ver_eliminados", response_class=HTMLResponse)
 async def ver_eliminados(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
     orden_file = "eliminados.csv"
 
     try:
@@ -68,6 +90,10 @@ async def ver_eliminados(request: Request):
 
 @router.get("/comparacion", response_class=HTMLResponse)
 async def mostrar_componentes(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
     csv_file = "componentes.csv"
     sesiones = pd.read_csv(csv_file)
     sesiones["id"] = sesiones.index  
@@ -79,6 +105,10 @@ async def mostrar_componentes(request: Request):
 
 @router.post("/comparar", response_class=HTMLResponse)
 async def comparar_componentes(request: Request, seleccionados: list[int] = Form(...)):
+
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     csv_file = "componentes.csv"
     sesiones = pd.read_csv(csv_file)
     sesiones["id"] = sesiones.index
@@ -93,6 +123,9 @@ async def comparar_componentes(request: Request, seleccionados: list[int] = Form
 
 @router.get("/compatiblesi", response_class=HTMLResponse)
 async def ver_componentes_compatibles(request: Request, socket: str, tipo_ram: Optional[str] = None):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     csv_file = "componentes.csv"
     df = pd.read_csv(csv_file)
 
@@ -110,6 +143,10 @@ async def ver_componentes_compatibles(request: Request, socket: str, tipo_ram: O
 
 @router.get("/orden", response_class=HTMLResponse)
 async def ver_orden(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
     orden_file = "orden.csv"
 
     try:
@@ -127,7 +164,7 @@ async def ver_orden(request: Request):
     )
 #-----------------------------------------------------------------------------------------------------
 
-"""
+
 @router.get("/add", response_class=HTMLResponse)
 async def ver_add(request: Request):
     df = pd.read_csv("componentes.csv")
@@ -191,7 +228,7 @@ async def enviar_add(
 
     return RedirectResponse(url="/orden", status_code=303)
 
-"""
+
 
 @router.post("/add_con_usuario")
 async def enviar_add_con_usuario(request: Request,
@@ -269,14 +306,23 @@ async def ver_orden_usuario(request: Request):
 
 @router.get("/cpu-incompa", response_class=HTMLResponse)
 async def ver_cpu_incompa(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("cpu-incompa.html", {"request": request})
 
 @router.get("/ram-incompa", response_class=HTMLResponse)
 async def ver_ram_incompa(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("ram-incompa.html", {"request": request})
 
 @router.get("/modificar", response_class=HTMLResponse)
 async def ver_modificar_orden(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     try:
         df_orden = pd.read_csv("orden.csv")
         df_componentes = pd.read_csv("componentes.csv")
@@ -322,6 +368,9 @@ async def aplicar_modificacion(
 
 @router.get("/eliminar", response_class=HTMLResponse)
 async def mostrar_ordenes_para_eliminar(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     try:
         df = pd.read_csv("orden.csv")
     except FileNotFoundError:
@@ -366,10 +415,16 @@ async def mover_orden_a_eliminados(orden: str = Form(...)):
 
 @router.get("/menu", response_class=HTMLResponse)
 async def ver_menu(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("menu.html", {"request": request})
 
 @router.get("/ordenes", response_class=HTMLResponse)
 async def ver_ordenes(request: Request):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     orden_file = "orden.csv"
 
     try:
@@ -419,20 +474,20 @@ async def ver_login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @router.post("/login")
-async def procesar_login(request: Request, nombre_usuario: str = Form(...), contraseña: str = Form(...)):
-    user = get_user_by_username(nombre_usuario.strip())
-    if not user:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Usuario o contraseña incorrectos."})
-    if not verify_password(contraseña, user["contraseña_hash"]):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Usuario o contraseña incorrectos."})
+async def procesar_login(request: Request, correo: str = Form(...), contraseña: str = Form(...)):
+    usuario = get_user_by_username(correo.strip())
+    if not usuario:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Correo o contraseña incorrectos."})
+    if not verify_password(contraseña, usuario["contraseña_hash"]):
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Correo o contraseña incorrectos."})
     # guardar sesión
-    request.session["username"] = nombre_usuario.strip()
+    request.session["correo"] = correo.strip()
     return RedirectResponse(url="/homeAutenticacion", status_code=303)
 
 @router.get("/logout")
 async def logout(request: Request):
-    request.session.pop("username", None)
-    return RedirectResponse(url="/login", status_code=303)
+    request.session.pop("correo", None)
+    return RedirectResponse(url="/home", status_code=303)
 
 @router.get("/cambiar_contraseña", response_class=HTMLResponse)
 async def ver_cambiar_contrasena(request: Request):

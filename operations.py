@@ -65,10 +65,10 @@ def ensure_users_csv_exists():
         df = pd.DataFrame(columns=["id","nombre_usuario","correo","contraseña_hash"])
         df.to_csv(USERS_CSV, index=False)
 
-def get_user_by_username(username: str):
+def get_user_by_username(correo: str):
     ensure_users_csv_exists()
     df = pd.read_csv(USERS_CSV)
-    row = df[df["nombre_usuario"] == username]
+    row = df[df["correo"] == correo]
     if row.empty:
         return None
     return row.iloc[0].to_dict()
@@ -76,8 +76,8 @@ def get_user_by_username(username: str):
 def create_user(nombre_usuario: str, correo: str, plain_password: str):
     ensure_users_csv_exists()
     df = pd.read_csv(USERS_CSV)
-    if (df["nombre_usuario"] == nombre_usuario).any():
-        raise ValueError("Nombre de usuario ya existe")
+    if (df["correo"] == correo).any():
+        raise ValueError("Ya existe una cuenta asociada a este correo")
     next_id = int(df["id"].max()) + 1 if not df.empty else 1
     hashed = hash_password(plain_password)
     df_new = pd.DataFrame([{"id": next_id, "nombre_usuario": nombre_usuario, "correo": correo, "contraseña_hash": hashed}])

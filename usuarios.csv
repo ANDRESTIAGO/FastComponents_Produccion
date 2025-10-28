@@ -1,0 +1,3 @@
+id,nombre_usuario,correo,contraseña_hash
+1,fulano,felipe@gmail.com,$2b$12$NQu8htKnFCzVcKDjAn8A3eK4iA4lfwgbxMV1T4myHvJ0hwxmjgCZi
+2,andres morales,andres@gmail.com,$2b$12$Tt8vSnq2YaAenI0R/lj34.9fjpz.jEQVvlShtY7QxY5QLY/TdOozK
