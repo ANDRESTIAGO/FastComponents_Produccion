@@ -11,18 +11,31 @@
 {% if error %}
   <div class="error">{{ error }}</div>
 {% endif %}
+<section id="comparison-section">
+        <div class="cards-container">
+                <div style="transition: none; transform: none;" class="card">
+                    <img src="../static/img/logo1.jpg" alt="Imagen del componente" class="card-image">
+                    <div class="card-content">
+                      <form method="post" action="/registro">
+                        <label>Nombre de usuario</label><br>
+                        <input style="width:268px;" type="text" name="nombre_usuario" required><br>
+                        <br><label>Correo</label><br>
+                        <input style="width:268px;" type="email" name="correo" required><br>
+                        <br><label>Contraseña</label><br>
+                        <input style="width:268px;" type="password" name="contraseña" required><br>
+                        <br><label>Confirmar contraseña</label><br>
+                        <input style="width:268px;" type="password" name="contraseña2" required><br><br>
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            <button type="submit">Registrarse</button>
+                        </div>
 
-<form method="post" action="/registro">
-  <label>Nombre de usuario</label><br>
-  <input type="text" name="nombre_usuario" required><br>
-  <label>Correo</label><br>
-  <input type="email" name="correo" required><br>
-  <label>Contraseña</label><br>
-  <input type="password" name="contraseña" required><br>
-  <label>Confirmar contraseña</label><br>
-  <input type="password" name="contraseña2" required><br><br>
-  <button type="submit">Registrarse</button>
-</form>
+                    </form>
+                </div>
+        </div>
+</section>
 
-<p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+<div style="text-align: center;">
+    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+</div>
+
 {% endblock %}

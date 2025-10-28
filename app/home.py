@@ -46,7 +46,7 @@ async def ver_home(request: Request):
     username = request.session.get("correo")  # obtiene usuario de la sesión
     if username:
         # Si ya está autenticado, mostrar el home autenticado
-        return RedirectResponse(url="Autenticacion", status_code=303)
+        return RedirectResponse(url="/homeAutenticacion", status_code=303)
     else:
         # Si no ha iniciado sesión, enviar al login
         return RedirectResponse(url="/home", status_code=303)
@@ -165,27 +165,51 @@ async def ver_orden(request: Request):
 #-----------------------------------------------------------------------------------------------------
 
 @router.get("/add", response_class=HTMLResponse)
-async def ver_add(request: Request):
+async def ver_add(request: Request, motherboard_id: int = None, nombre_orden: str = None):
+    """
+    Paso 1: si no hay motherboard seleccionada, muestra solo las placas madre.
+    Paso 2: si se seleccionó una motherboard, filtra los componentes compatibles.
+    """
     correo = get_current_user(request)
     if not correo:
         return RedirectResponse(url="/login", status_code=303)
 
     df = pd.read_csv("componentes.csv")
-    motherboards = df[df["tipo"] == "Motherboard"].to_dict(orient="records")
-    cpus = df[df["tipo"] == "CPU"].to_dict(orient="records")
-    rams = df[df["tipo"] == "RAM"].to_dict(orient="records")
+
+    #Paso 1: seleccionar la placa madre
+    if motherboard_id is None:
+        motherboards = df[df["tipo"] == "Motherboard"].to_dict(orient="records")
+        return templates.TemplateResponse("add.html", {
+            "request": request,
+            "motherboards": motherboards,
+            "nombre_orden": nombre_orden or "",
+            "step": 1,
+            "correo": correo
+        })
+
+    #Paso 2: ya se eligió una motherboard → filtrar componentes compatibles
+    mb = df[df["id"] == motherboard_id].iloc[0]
+    socket_mb = mb["socket"]
+    tipo_ram_mb = mb["tipo_ram"]
+
+    cpus = df[(df["tipo"] == "CPU") & (df["socket"] == socket_mb)].to_dict(orient="records")
+    rams = df[(df["tipo"] == "RAM") & (df["tipo_ram"] == tipo_ram_mb)].to_dict(orient="records")
     gpus = df[df["tipo"] == "GPU"].to_dict(orient="records")
     discos = df[df["tipo"].isin(["HDD", "SSD"])].to_dict(orient="records")
 
     return templates.TemplateResponse("add.html", {
         "request": request,
-        "motherboards": motherboards,
+        "motherboard_id": motherboard_id,
+        "nombre_orden": nombre_orden or "",
+        "motherboard": mb.to_dict(),
         "cpus": cpus,
         "rams": rams,
         "gpus": gpus,
         "discos": discos,
+        "step": 2,
         "correo": correo
     })
+
 
 
 
@@ -199,7 +223,6 @@ async def enviar_add(
     gpu_id: int = Form(...),
     disco_id: int = Form(...)
 ):
-
     correo = get_current_user(request)
     if not correo:
         return RedirectResponse(url="/login", status_code=303)
@@ -213,11 +236,13 @@ async def enviar_add(
     gpu = df[df["id"] == gpu_id].iloc[0]
     disco = df[df["id"] == disco_id].iloc[0]
 
+    #Verificación de compatibilidad
     if cpu["socket"] != mb["socket"]:
         return RedirectResponse(url="/cpu-incompa", status_code=303)
     if "tipo_ram" in mb and "tipo_ram" in ram and ram["tipo_ram"] != mb["tipo_ram"]:
         return RedirectResponse(url="/ram-incompa", status_code=303)
 
+    # Cargar archivo de órdenes
     try:
         orden = pd.read_csv(orden_file)
     except FileNotFoundError:
@@ -225,6 +250,7 @@ async def enviar_add(
             "correo_usuario", "orden", "id", "nombre", "tipo", "marca", "modelo"
         ])
 
+    #Agregar componentes seleccionados
     seleccionados = pd.DataFrame([
         {"correo_usuario": correo, "orden": nombre_orden, **mb.to_dict()},
         {"correo_usuario": correo, "orden": nombre_orden, **cpu.to_dict()},
@@ -237,6 +263,7 @@ async def enviar_add(
     orden.to_csv(orden_file, index=False)
 
     return RedirectResponse(url="/ordenes", status_code=303)
+
 
 
 
@@ -330,44 +357,120 @@ async def ver_ram_incompa(request: Request):
 
 @router.get("/modificar", response_class=HTMLResponse)
 async def ver_modificar_orden(request: Request):
-    username = get_current_user(request)
-    if not username:
+    correo = get_current_user(request)
+    if not correo:
         return RedirectResponse(url="/login", status_code=303)
+
     try:
         df_orden = pd.read_csv("orden.csv")
         df_componentes = pd.read_csv("componentes.csv")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="No se encontraron archivos de orden o componentes")
 
-    ordenes = df_orden["orden"].unique().tolist()
-    componentes_por_orden = {
-        nombre: df_orden[df_orden["orden"] == nombre].to_dict(orient="records")
-        for nombre in ordenes
-    }
+    # Filtrar solo las órdenes del usuario actual
+    df_usuario = df_orden[df_orden["correo_usuario"] == correo]
+    if df_usuario.empty:
+        return templates.TemplateResponse("modificar_orden.html", {
+            "request": request,
+            "mensaje": "No tienes órdenes registradas aún.",
+            "ordenes": [],
+            "componentes_por_orden": {},
+            "todos_componentes": []
+        })
+
+    # Agrupar componentes por orden
+    ordenes = df_usuario["orden"].unique().tolist()
+    componentes_por_orden = {}
+    for nombre in ordenes:
+        df_orden_actual = df_usuario[df_usuario["orden"] == nombre]
+
+        # Identificar la motherboard de esa orden
+        mb = df_orden_actual[df_orden_actual["tipo"] == "Motherboard"].iloc[0]
+        socket_mb = mb["socket"]
+        tipo_ram_mb = mb.get("tipo_ram", None)
+
+        # Filtrar componentes compatibles con esta motherboard
+        compatibles = {
+            "CPU": df_componentes[(df_componentes["tipo"] == "CPU") & (df_componentes["socket"] == socket_mb)],
+            "RAM": df_componentes[
+                (df_componentes["tipo"] == "RAM")
+                & (df_componentes["tipo_ram"] == tipo_ram_mb)
+            ],
+            "GPU": df_componentes[df_componentes["tipo"] == "GPU"],
+            "HDD": df_componentes[df_componentes["tipo"].isin(["HDD", "SSD"])],
+            "SSD": df_componentes[df_componentes["tipo"].isin(["HDD", "SSD"])],
+            "Power Supply": df_componentes[df_componentes["tipo"] == "Power Supply"],
+        }
+
+        componentes_por_orden[nombre] = {
+            "componentes_actuales": df_orden_actual.to_dict(orient="records"),
+            "compatibles": {k: v.to_dict(orient="records") for k, v in compatibles.items()}
+        }
 
     return templates.TemplateResponse("modificar_orden.html", {
         "request": request,
         "ordenes": ordenes,
         "componentes_por_orden": componentes_por_orden,
-        "todos_componentes": df_componentes.to_dict(orient="records")
+        "correo": correo
     })
+
+
 
 @router.post("/modificar", response_class=HTMLResponse)
 async def aplicar_modificacion(
+    request: Request,
     orden: str = Form(...),
     componente_id_original: int = Form(...),
     nuevo_id: int = Form(...)
 ):
+    correo = get_current_user(request)
+    if not correo:
+        return RedirectResponse(url="/login", status_code=303)
+
     df_orden = pd.read_csv("orden.csv")
     df_componentes = pd.read_csv("componentes.csv")
 
+    #Verificar propiedad
+    df_usuario = df_orden[df_orden["correo_usuario"] == correo]
+    if orden not in df_usuario["orden"].values:
+        raise HTTPException(status_code=403, detail="No tienes permiso para modificar esta orden.")
+
+    #Obtener la placa madre y sus especificaciones
+    orden_actual = df_usuario[df_usuario["orden"] == orden]
+    mb = orden_actual[orden_actual["tipo"] == "Motherboard"].iloc[0]
+    socket_mb = mb["socket"]
+    tipo_ram_mb = mb.get("tipo_ram", None)
+
+    #Componente original
+    original = orden_actual[orden_actual["id"] == componente_id_original]
+    if original.empty:
+        raise HTTPException(status_code=404, detail="Componente original no encontrado.")
+    tipo_original = original.iloc[0]["tipo"]
+
+    #Nuevo componente
     nuevo = df_componentes[df_componentes["id"] == nuevo_id]
     if nuevo.empty:
-        raise HTTPException(status_code=404, detail="Nuevo componente no encontrado")
+        raise HTTPException(status_code=404, detail="Nuevo componente no encontrado.")
+    tipo_nuevo = nuevo.iloc[0]["tipo"]
 
-    index = df_orden[(df_orden["orden"] == orden) & (df_orden["id"] == componente_id_original)].index
-    if index.empty:
-        raise HTTPException(status_code=404, detail="Componente original no encontrado en la orden")
+    #Validar que no sea Motherboard y sea del mismo tipo
+    if tipo_original == "Motherboard":
+        raise HTTPException(status_code=400, detail="No puedes modificar la placa madre de la orden.")
+    if tipo_original != tipo_nuevo:
+        raise HTTPException(status_code=400, detail="Solo puedes cambiar componentes del mismo tipo.")
+
+    #Validar compatibilidad
+    if tipo_nuevo == "CPU" and nuevo.iloc[0]["socket"] != socket_mb:
+        raise HTTPException(status_code=400, detail="El CPU seleccionado no es compatible con la placa madre.")
+    if tipo_nuevo == "RAM" and tipo_ram_mb and nuevo.iloc[0]["tipo_ram"] != tipo_ram_mb:
+        raise HTTPException(status_code=400, detail="La RAM seleccionada no es compatible con la placa madre.")
+
+    #Aplicar la modificación
+    index = df_orden[
+        (df_orden["orden"] == orden)
+        & (df_orden["id"] == componente_id_original)
+        & (df_orden["correo_usuario"] == correo)
+    ].index
 
     for col in nuevo.columns:
         df_orden.loc[index, col] = nuevo.iloc[0][col]
@@ -376,26 +479,43 @@ async def aplicar_modificacion(
     return RedirectResponse(url="/ordenes", status_code=303)
 
 
+
+
 @router.get("/eliminar", response_class=HTMLResponse)
 async def mostrar_ordenes_para_eliminar(request: Request):
-    username = get_current_user(request)
-    if not username:
+    correo = get_current_user(request)
+    if not correo:
         return RedirectResponse(url="/login", status_code=303)
+
     try:
         df = pd.read_csv("orden.csv")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="No hay órdenes registradas")
 
-    nombres_ordenes = df["orden"].unique().tolist()
+    # Filtrar solo las órdenes del usuario logueado
+    df_usuario = df[df["correo_usuario"] == correo]
+
+    if df_usuario.empty:
+        return templates.TemplateResponse("eliminar.html", {
+            "request": request,
+            "ordenes": [],
+            "mensaje": "No tienes órdenes registradas para eliminar."
+        })
+
+    nombres_ordenes = df_usuario["orden"].unique().tolist()
 
     return templates.TemplateResponse("eliminar.html", {
         "request": request,
         "ordenes": nombres_ordenes
     })
 
+
 @router.post("/eliminar", response_class=HTMLResponse)
-async def mover_orden_a_eliminados(orden: str = Form(...)):
-    print(f"Orden recibida para eliminar: {orden}")
+async def mover_orden_a_eliminados(request: Request, orden: str = Form(...)):
+    correo = get_current_user(request)
+    if not correo:
+        return RedirectResponse(url="/login", status_code=303)
+
     orden_file = "orden.csv"
     eliminados_file = "eliminados.csv"
 
@@ -404,23 +524,26 @@ async def mover_orden_a_eliminados(orden: str = Form(...)):
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="No hay órdenes registradas")
 
-    filas_eliminadas = df[df["orden"] == orden]
-    if filas_eliminadas.empty:
-        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    #Verificar que la orden pertenezca al usuario
+    filas_usuario = df[(df["orden"] == orden) & (df["correo_usuario"] == correo)]
+    if filas_usuario.empty:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta orden.")
 
+    #Mover las filas del usuario a eliminados.csv
     try:
         df_eliminados = pd.read_csv(eliminados_file)
-        df_eliminados = pd.concat([df_eliminados, filas_eliminadas], ignore_index=True)
-    except (FileNotFoundError, pandas.errors.EmptyDataError):
-        df_eliminados = filas_eliminadas.copy()
+        df_eliminados = pd.concat([df_eliminados, filas_usuario], ignore_index=True)
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        df_eliminados = filas_usuario.copy()
 
     df_eliminados.to_csv(eliminados_file, index=False)
 
-
-    df = df[df["orden"] != orden]
+    #Eliminar solo las filas del usuario y esa orden
+    df = df[~((df["orden"] == orden) & (df["correo_usuario"] == correo))]
     df.to_csv(orden_file, index=False)
 
-    return RedirectResponse(url="/orden", status_code=303)
+    return RedirectResponse(url="/ordenes", status_code=303)
+
 
 
 @router.get("/menu", response_class=HTMLResponse)

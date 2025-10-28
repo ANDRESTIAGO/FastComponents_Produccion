@@ -1,1 +1,6 @@
-id,nombre,tipo,marca,modelo,socket,nucleos,frecuencia_base,vram,tipo_memoria,puertos,capacidad,frecuencia,tipo_ram,puertos_expansion,interface,potencia,certificacion,conectores,imagen_url,orden
+id,nombre,tipo,marca,modelo,socket,nucleos,frecuencia_base,vram,tipo_memoria,puertos,capacidad,frecuencia,tipo_ram,puertos_expansion,interface,potencia,certificacion,conectores,imagen_url,orden,correo_usuario
+7.0,Placa Madre ASUS,Motherboard,ASUS,ROG STRIX B550-F,AM4,,,,,,,,DDR4,4.0,,,,,https://m.media-amazon.com/images/I/81Q-hxowAqL.jpg,orden1,andres@gmail.com
+10.0,Disco Duro,SSD,Samsung,970 EVO 1TB,,,,,,,1000.0,,,,NVMe,,,,https://m.media-amazon.com/images/I/71OYNmVRFhL.jpg,orden1,andres@gmail.com
+5.0,Memoria RAM Corsair,RAM,Corsair,Vengeance LPX 16GB,,,,,,,16.0,3200.0,DDR4,,,,,,https://m.media-amazon.com/images/I/51O4bhCyg2L._AC_SL1000_.jpg,orden1,andres@gmail.com
+3.0,Tarjeta Gráfica RTX 3060,GPU,NVIDIA,RTX 3060,,,,12.0,GDDR6,"HDMI, DisplayPort",,,,,,,,,https://pcmastersbogota.com.co/wp-content/uploads/2023/05/imagen_2023-05-16_100352851.png,orden1,andres@gmail.com
+9.0,Disco Duro,HDD,Seagate,Barracuda 2TB,,,,,,,2000.0,,,,SATA,,,,https://globalsarpi.com/wp-content/uploads/2024/02/HDD-Interno-Seagate-Barracuda-2TB-3.5-7200RPM-256MB-ST2000DM008-1.jpg,orden1,andres@gmail.com
