@@ -417,42 +417,48 @@ async def aplicar_modificacion(
     df_orden = pd.read_csv("orden.csv")
     df_componentes = pd.read_csv("componentes.csv")
 
-    #Verificar propiedad
+    #Verificar que la orden pertenece al usuario
     df_usuario = df_orden[df_orden["correo_usuario"] == correo]
     if orden not in df_usuario["orden"].values:
         raise HTTPException(status_code=403, detail="No tienes permiso para modificar esta orden.")
 
-    #Obtener la placa madre y sus especificaciones
+    # Obtener la placa madre de esa orden
     orden_actual = df_usuario[df_usuario["orden"] == orden]
     mb = orden_actual[orden_actual["tipo"] == "Motherboard"].iloc[0]
     socket_mb = mb["socket"]
     tipo_ram_mb = mb.get("tipo_ram", None)
 
-    #Componente original
+    # Componente original
     original = orden_actual[orden_actual["id"] == componente_id_original]
     if original.empty:
         raise HTTPException(status_code=404, detail="Componente original no encontrado.")
     tipo_original = original.iloc[0]["tipo"]
 
-    #Nuevo componente
+    # Nuevo componente
     nuevo = df_componentes[df_componentes["id"] == nuevo_id]
     if nuevo.empty:
         raise HTTPException(status_code=404, detail="Nuevo componente no encontrado.")
     tipo_nuevo = nuevo.iloc[0]["tipo"]
 
-    #Validar que no sea Motherboard y sea del mismo tipo
+    #No se puede cambiar la placa madre
     if tipo_original == "Motherboard":
         raise HTTPException(status_code=400, detail="No puedes modificar la placa madre de la orden.")
-    if tipo_original != tipo_nuevo:
-        raise HTTPException(status_code=400, detail="Solo puedes cambiar componentes del mismo tipo.")
 
-    #Validar compatibilidad
+    #Validación de tipo
+    # Permitir intercambio HDD <-> SSD, pero exigir mismo tipo para los demás
+    if not (
+        (tipo_original in ["HDD", "SSD"] and tipo_nuevo in ["HDD", "SSD"])
+        or tipo_original == tipo_nuevo
+    ):
+        raise HTTPException(status_code=400, detail="Solo puedes cambiar componentes del mismo tipo (excepto HDD ↔ SSD).")
+
+    # 🧩 Validar compatibilidad según el tipo
     if tipo_nuevo == "CPU" and nuevo.iloc[0]["socket"] != socket_mb:
         raise HTTPException(status_code=400, detail="El CPU seleccionado no es compatible con la placa madre.")
     if tipo_nuevo == "RAM" and tipo_ram_mb and nuevo.iloc[0]["tipo_ram"] != tipo_ram_mb:
         raise HTTPException(status_code=400, detail="La RAM seleccionada no es compatible con la placa madre.")
 
-    #Aplicar la modificación
+    #plicar el cambio en el CSV
     index = df_orden[
         (df_orden["orden"] == orden)
         & (df_orden["id"] == componente_id_original)
@@ -463,7 +469,9 @@ async def aplicar_modificacion(
         df_orden.loc[index, col] = nuevo.iloc[0][col]
 
     df_orden.to_csv("orden.csv", index=False)
+
     return RedirectResponse(url="/ordenes", status_code=303)
+
 
 
 

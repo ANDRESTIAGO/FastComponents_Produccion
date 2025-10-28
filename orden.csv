@@ -8,4 +8,4 @@ id,nombre,tipo,marca,modelo,socket,nucleos,frecuencia_base,vram,tipo_memoria,pue
 2.0,Procesador Core i7,CPU,Intel,i7-12700K,LGA1700,12.0,3.6,,,,,,,,,,,,https://www.mrpc.com.co/wp-content/uploads/2023/07/001-36.jpg,prueba de orden,andres@gmail.com
 6.0,Memoria RAM Kingston,RAM,Kingston,FURY Beast 16GB,,,,,,,16.0,3600.0,DDR4,,,,,,https://symcomputadores.com/wp-content/uploads/2022/09/5-2.jpg,prueba de orden,andres@gmail.com
 4.0,Tarjeta Gráfica RX 6600,GPU,AMD,RX 6600 XT,,,,8.0,GDDR6,"HDMI, DisplayPort",,,,,,,,,https://m.media-amazon.com/images/I/6121pomHteL.jpg,prueba de orden,andres@gmail.com
-10.0,Disco Duro,SSD,Samsung,970 EVO 1TB,,,,,,,1000.0,,,,NVMe,,,,https://m.media-amazon.com/images/I/71OYNmVRFhL.jpg,prueba de orden,andres@gmail.com
+9.0,Disco Duro,HDD,Seagate,Barracuda 2TB,,,,,,,2000.0,,,,SATA,,,,https://globalsarpi.com/wp-content/uploads/2024/02/HDD-Interno-Seagate-Barracuda-2TB-3.5-7200RPM-256MB-ST2000DM008-1.jpg,prueba de orden,andres@gmail.com
