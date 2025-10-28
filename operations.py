@@ -85,15 +85,16 @@ def create_user(nombre_usuario: str, correo: str, plain_password: str):
     df.to_csv(USERS_CSV, index=False)
     return next_id
 
-def update_user_password(username: str, new_plain_password: str):
+def update_user_password(correo: str, new_plain_password: str):
     ensure_users_csv_exists()
     df = pd.read_csv(USERS_CSV)
-    idx = df[df["nombre_usuario"] == username].index
+    idx = df[df["correo"] == correo].index
     if idx.empty:
         raise ValueError("Usuario no encontrado")
     df.loc[idx, "contraseña_hash"] = hash_password(new_plain_password)
     df.to_csv(USERS_CSV, index=False)
     return True
+
 
 
 """
