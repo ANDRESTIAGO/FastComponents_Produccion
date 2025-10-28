@@ -15,20 +15,7 @@ prueba_file = "pruebas.csv"
 csv_eliminados = "eliminados.csv"
 
 def get_current_user(request: Request):
-    """
-    Devuelve el nombre de usuario si está logueado, o None.
-    """
     return request.session.get("correo")
-
-def require_login(request: Request):
-    """
-    Usar al inicio de endpoints que deban estar protegidos.
-    Si no hay sesión, redirige a /login.
-    """
-    user = get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-    return None
 
 @router.get("/homeAutenticacion", response_class=HTMLResponse)
 async def ver_homeAutenticacion(request: Request):

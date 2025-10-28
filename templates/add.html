@@ -4,30 +4,35 @@
 {% block content %}
 <section id="hero">
   <div class="hero">
-    <h1 class="hero-title">Creación de orden</h1>
+    <h1 class="hero-title">Creacion de orden</h1>
     <h3 class="hero-subtitle">Selecciona tus componentes paso a paso</h3>
   </div>
 </section>
 
 <section id="crear-orden">
+  <br>
   <div class="form_forma">
     {% if step == 1 %}
-      <!-- Paso 1: elegir placa madre -->
       <form method="get" action="/add">
-        <label>Nombre de la orden:</label>
-        <input type="text" name="nombre_orden" required><br><br>
-
-        <label>Selecciona la placa madre:</label>
-        <select name="motherboard_id" required>
-          {% for mb in motherboards %}
-            <option value="{{ mb.id }}">{{ mb.marca }} - {{ mb.modelo }} ({{ mb.socket }}, {{ mb.tipo_ram }})</option>
-          {% endfor %}
-        </select><br><br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+          <label>Nombre de la orden:</label>
+          <input type="text" name="nombre_orden" required><br><br>
+        </div>
+        <br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <label>Selecciona la placa madre:</label>
+          <select name="motherboard_id" required>
+            {% for mb in motherboards %}
+              <option value="{{ mb.id }}">{{ mb.marca }} - {{ mb.modelo }} ({{ mb.socket }}, {{ mb.tipo_ram }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <br><br>
+        
 
         <button type="submit">Elegir placa</button>
       </form>
     {% elif step == 2 %}
-      <!-- Paso 2: componentes compatibles -->
       <form method="post" action="/add">
         <input type="hidden" name="motherboard_id" value="{{ motherboard.id }}">
         <label>Nombre de la orden:</label>

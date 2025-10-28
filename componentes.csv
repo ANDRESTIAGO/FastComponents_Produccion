@@ -10,7 +10,7 @@ id,nombre,tipo,marca,modelo,socket,nucleos,frecuencia_base,vram,tipo_memoria,pue
 9.0,Disco Duro,HDD,Seagate,Barracuda 2TB,,,,,,,2000.0,,,,SATA,,,,https://globalsarpi.com/wp-content/uploads/2024/02/HDD-Interno-Seagate-Barracuda-2TB-3.5-7200RPM-256MB-ST2000DM008-1.jpg
 10.0,Disco Duro,SSD,Samsung,970 EVO 1TB,,,,,,,1000.0,,,,NVMe,,,,https://m.media-amazon.com/images/I/71OYNmVRFhL.jpg
 11.0,Fuente de Poder EVGA,Power Supply,EVGA,600W 80+ White,,,,,,,,,,,,600.0,80+ White,"24-pin, 8-pin PCIe",https://casatecno.com.ar/img/Public/1108-producto-nb-fuente-gamer-evga-600w-80-white-w2-ver-81e4545613c75947c1fc1164.jpeg
-12.0,Fuente de Poder Corsair,Power Supply,Corsair,RM750x 80+ Gold,,,,,,,,,,,,750.0,80+ Gold,"24-pin, 8-pin PCIe",https://brateisa.com/wp-content/uploads/2024/09/461139_994087_06_front_zoom.jpg
+12.0,Fuente de Poder Corsair,Power Supply,Corsair,RM750x 80+ Gold,,,,,,,,,,,,750.0,80+ Gold,"24-pin, 8-pin PCIe",https://ddtech.mx/assets/uploads/0bc857243d1dda251afde293fb1eb8d1.jpg
 13.0,Memoria RAM Kingston,RAM,Kingston,HyperX Fury 8GB,,,,,,,8.0,1600.0,DDR3,,,,,, https://www.actualidadhardware.com/wp-content/uploads/2014/07/kingston-hyperx-fury-slider.jpg
 14.0,Memoria RAM G.Skill,RAM,G.Skill,Trident Z5 RGB 32GB,,,,,,,32.0,6000.0,DDR5,,,,,,https://m.media-amazon.com/images/I/31haDqsLfHL.jpg
 15.0,Placa Madre ASUS,Motherboard,ASUS,PRIME H610M-E D4,LGA1700,,,,,,,,DDR4,4.0,,,,,https://pcspeed.com.pe/wp-content/uploads/2023/03/mainboard-asus-prime-h610m-e-d4-90mb19n0-m0eay0-2.jpg
