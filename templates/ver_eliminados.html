@@ -1,8 +1,11 @@
-{% extends 'base.html' %}
-
+{% extends 'baseAutenticacion.html' %}
 {% block content %}
-<h2>Órdenes Guardadas</h2>
-
+<section id="hero">
+    <div class="hero">
+        <h1 class="hero-title">Ordenes eliminadas</h1>
+        <h3 class="hero-subtitle">Aqui estan tus ordenes eliminadas</h3>
+    </div>
+</section>
 
 {% if ordenes %}
     {% for nombre, componentes in ordenes.items() %}
