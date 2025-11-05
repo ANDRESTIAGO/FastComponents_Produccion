@@ -1,3 +1,10 @@
 # FastComponents_Produccion
 
-En este proyecto se utilizo el lenguaje de Python como desarollo general, FastApi como api para el manejo de endpoints, Jinja para el manejo entre el backend y el frontend. Se utilizo el servicio de Render para el lanzamiento de la pagina, Clever Cloud para el alojamiento de la base de datos, y Github para el control de versiones, asi mismo se utilizaron buenas practicas como Jira, miro, para poder tener un manejo de ideas adecuado asi mismo las metodologias agiles de Scrum y KanBan para la entrega de sprints a tiempos correctos.
+En este proyecto se utilizó el lenguaje Python para el desarrollo general.
+Se empleó FastAPI como framework para la implementación de endpoints y Jinja para la integración entre el backend y el frontend.
+
+La aplicación fue desplegada mediante el servicio Render, mientras que Clever Cloud se utilizó para el alojamiento de la base de datos. Además, se utilizó GitHub para el control de versiones.
+
+Como apoyo al proceso de desarrollo, se aplicaron buenas prácticas que incluyeron el uso de herramientas como Jira y Miro para la gestión y organización de ideas.
+
+Asimismo, se implementaron metodologías ágiles como Scrum y Kanban para asegurar la entrega oportuna y progresiva de los sprints.
