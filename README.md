@@ -7,4 +7,4 @@ La aplicación fue desplegada mediante el servicio Render, mientras que Clever C
 
 Como apoyo al proceso de desarrollo, se aplicaron buenas prácticas que incluyeron el uso de herramientas como Jira y Miro para la gestión y organización de ideas.
 
-Asimismo, se implementaron metodologías ágiles como Scrum y Kanban para asegurar la entrega oportuna y progresiva de los sprints.
+Asi mismo, se implementaron metodologías ágiles como Scrum y Kanban para asegurar la entrega oportuna y progresiva de los sprints.
