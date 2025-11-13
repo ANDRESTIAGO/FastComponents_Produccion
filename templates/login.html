@@ -8,6 +8,9 @@
     </div>
 </section>
 
+{% if mensaje %}
+  <div class="alert alert-success">{{ mensaje }}</div>
+{% endif %}
 
 {% if error %}
   <div class="error">{{ error }}</div>

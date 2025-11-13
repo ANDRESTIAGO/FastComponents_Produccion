@@ -22,11 +22,12 @@ async def ver_homeAutenticacion(request: Request):
     username = get_current_user(request)
     if not username:
         return RedirectResponse(url="/login", status_code=303)
-    
-    return templates.TemplateResponse("homeAutenticacion.html", {"request": request})
+    mensaje = request.session.pop("mensaje", None)
+    return templates.TemplateResponse("homeAutenticacion.html", {"request": request, "mensaje": mensaje, "username": username})
 @router.get("/home", response_class=HTMLResponse)
 async def ver_homeAutenticacion(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    mensaje = request.session.pop("mensaje", None)
+    return templates.TemplateResponse("home.html", {"request": request, "mensaje": mensaje})
 
 @router.get("/", response_class=HTMLResponse)
 async def ver_home(request: Request):
@@ -604,7 +605,8 @@ async def procesar_registro(request: Request,
     except ValueError as e:
         return templates.TemplateResponse("registro.html", {"request": request, "error": str(e)})
     # auto-login tras registro
-    request.session["username"] = nombre_usuario.strip()
+    request.session["correo"] = correo.strip()
+    request.session["mensaje"] = "Se registro correctamente"
     return RedirectResponse(url="/homeAutenticacion", status_code=303)
 
 @router.get("/login", response_class=HTMLResponse)
@@ -627,7 +629,9 @@ async def procesar_login(request: Request, correo: str = Form(...), contraseña:
 
 @router.get("/logout")
 async def logout(request: Request):
+
     request.session.pop("correo", None)
+    request.session["mensaje"] = "Session cerrada correctamente"
     return RedirectResponse(url="/home", status_code=303)
 
 @router.get("/cambiar_contraseña", response_class=HTMLResponse)
