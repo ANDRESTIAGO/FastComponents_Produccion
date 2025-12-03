@@ -5,9 +5,13 @@ import pandas as pd
 import pandas.errors
 import numpy as np
 from models import Componente, ComponenteActualizado, ComponenteConId, Orden
-from operations.operations import create_user
+from operations.operations import (
+    create_user,
+    get_user_by_username,
+    verify_password,
+    update_user_password
+)
 from typing import Optional
-from operations import operations   
 from fastapi.responses import RedirectResponse
 templates = Jinja2Templates(directory="templates")
 router = APIRouter()
