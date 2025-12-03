@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, HTTPException, FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import pandas as pd
 import pandas.errors
 import numpy as np
 from models import Componente, ComponenteActualizado, ComponenteConId, Orden
+from operations.operations import create_user
 from typing import Optional
 from operations import operations   
 from fastapi.responses import RedirectResponse
