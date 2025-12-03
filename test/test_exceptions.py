@@ -1,5 +1,6 @@
 import pandas as pd
-from operations import create_user
+from operations.operations import create_user
+
 
 def test_modify_motherboard_forbidden(client):
     # crear usuario y orden
