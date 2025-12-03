@@ -13,7 +13,11 @@ from operations.operations import (
 )
 from typing import Optional
 from fastapi.responses import RedirectResponse
-templates = Jinja2Templates(directory="templates")
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
 router = APIRouter()
 csv_file = "componentes.csv"
 prueba_file = "pruebas.csv"
