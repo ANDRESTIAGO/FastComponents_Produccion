@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# --- Añadir raíz del proyecto al PYTHONPATH ---
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
 import os
 import pandas as pd
 import pytest
