@@ -44,14 +44,22 @@
 </section>
 
 {% if error %}
-  <div class="error">{{ error }}</div>
+<section id="Lo-que-ofresemos">
+  <div class="contenedor"">
+    <div class="error">{{ error }}</div>
+  </div>
+</section>
 {% endif %}
 {% if success %}
-  <div class="success">{{ success }}</div>
+<section id="Lo-que-ofresemos">
+  <div class="contenedor"">
+    <div class="success">{{ success }}</div>
+  </div>
+</section>
 {% endif %}
 
 <div class="form-container">
-  <h2>Actualizar Contraseña</h2>
+  <h2 style="text-align: center;">Actualizar Contraseña</h2>
   <form method="post" action="/cambiar_contraseña">
     <label>Contraseña actual</label>
     <input type="password" name="current_password" required>
