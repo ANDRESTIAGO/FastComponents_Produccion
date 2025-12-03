@@ -6,7 +6,7 @@ import pandas.errors
 import numpy as np
 from models import Componente, ComponenteActualizado, ComponenteConId, Orden
 from typing import Optional
-from operations import *
+from operations import operations   
 from fastapi.responses import RedirectResponse
 templates = Jinja2Templates(directory="templates")
 router = APIRouter()
