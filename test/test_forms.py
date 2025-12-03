@@ -9,7 +9,7 @@ def login_as(client, correo="andres@example.com"):
         "correo": correo,
         "contraseña": "pass123",
         "contraseña2": "pass123"
-    }, allow_redirects=False)
+    })
 
 def test_create_order_success(client):
     # login
@@ -23,7 +23,7 @@ def test_create_order_success(client):
         "ram_id": 3,
         "gpu_id": 4,
         "disco_id": 5
-    }, allow_redirects=False)
+    })
     # si todo ok redirige a /ordenes
     assert resp.status_code in (302, 303)
 
@@ -46,7 +46,7 @@ def test_create_order_incompatible_cpu(client):
         "ram_id": 3,
         "gpu_id": 4,
         "disco_id": 5
-    }, allow_redirects=False)
+    })
     # en tu endpoint se hace RedirectResponse(url="/cpu-incompa", status_code=303)
     assert resp.status_code in (302, 303)
     # debería redirigir a /cpu-incompa
@@ -62,7 +62,7 @@ def test_modify_component_success_and_forbidden(client):
         "ram_id": 3,
         "gpu_id": 4,
         "disco_id": 5
-    }, allow_redirects=False)
+    })
 
     # intentar cambiar la GPU (tipo GPU) por otra GPU -> but we only have one GPU in sample,
     # simulate by trying to replace GPU id 4 with HDD id 5 (should fail type)
@@ -70,7 +70,7 @@ def test_modify_component_success_and_forbidden(client):
         "orden": "Orden-Mod",
         "componente_id_original": 4,  # GPU
         "nuevo_id": 5                # HDD -> not same type (should 400)
-    }, allow_redirects=False)
+    })
     assert resp_bad.status_code == 400 or resp_bad.status_code in (200,)
 
     # intentar cambiar un componente válido: cambiar disco HDD <-> SSD allowed. but we only have HDD.
@@ -79,6 +79,6 @@ def test_modify_component_success_and_forbidden(client):
         "orden": "Orden-Mod",
         "componente_id_original": 3,
         "nuevo_id": 3
-    }, allow_redirects=False)
+    })
     # should succeed and redirect
     assert resp_ok.status_code in (302, 303) or resp_ok.status_code == 200
