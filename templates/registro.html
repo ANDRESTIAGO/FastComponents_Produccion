@@ -1,6 +1,59 @@
 {% extends 'base.html' %}
 {% block title %}Registro{% endblock %}
 {% block content %}
+
+<section id="comparison-section">
+
+    <style>
+        /* Centrar los inputs y que se vean mejor */
+        .reg-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .reg-label {
+            color: #ab7633;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .reg-input {
+            width: 70%;
+            max-width: 400px;
+            padding: 10px 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .reg-btn {
+            background-color: #ab7633;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .reg-btn:hover {
+            background-color: #c6833a;
+        }
+
+        /* Desactivar zoom del card */
+        .card:hover {
+            transform: none !important;
+            transition: none !important;
+        }
+    </style>
+
 <section id="hero">
     <div class="hero">
         <h1 class="hero-title" style="text-align: center;">            Registro</h1>
@@ -9,29 +62,39 @@
 </section>
 
 {% if error %}
-  <div class="error">{{ error }}</div>
+  <section id="Lo-que-ofresemos">
+  <div class="contenedor"">
+    <div class="error">{{ error }}</div>
+  </div>
+</section>
 {% endif %}
-<section id="comparison-section">
-        <div class="cards-container">
-                <div style="transition: none; transform: none;" class="card">
-                    <img src="../static/img/logo1.jpg" alt="Imagen del componente" class="card-image">
-                    <div class="card-content">
-                      <form method="post" action="/registro">
-                        <label>Nombre de usuario</label><br>
-                        <input style="width:268px;" type="text" name="nombre_usuario" required><br>
-                        <br><label>Correo</label><br>
-                        <input style="width:268px;" type="email" name="correo" required><br>
-                        <br><label>Contraseña</label><br>
-                        <input style="width:268px;" type="password" name="contraseña" required><br>
-                        <br><label>Confirmar contraseña</label><br>
-                        <input style="width:268px;" type="password" name="contraseña2" required><br><br>
-                        <div style="display: flex; justify-content: center; align-items: center;">
-                            <button type="submit">Registrarse</button>
-                        </div>
+  <div class="cards-container">
+        <div class="card" style="transition: none !important; transform: none !important; width: 1000px;">
+            
+            <img src="../static/img/logo1.jpg" alt="Imagen del componente" class="card-image">
 
-                    </form>
-                </div>
+            <div class="card-content">
+                <form method="post" action="/registro" class="reg-form">
+
+                    <label class="reg-label">Nombre de usuario</label>
+                    <input type="text" name="nombre_usuario" required class="reg-input">
+
+                    <label class="reg-label">Correo</label>
+                    <input type="email" name="correo" required class="reg-input">
+
+                    <label class="reg-label">Contraseña</label>
+                    <input type="password" name="contraseña" required class="reg-input">
+
+                    <label class="reg-label">Confirmar contraseña</label>
+                    <input type="password" name="contraseña2" required class="reg-input">
+
+                    <button type="submit" class="reg-btn">Registrarse</button>
+
+                </form>
+            </div>
         </div>
+    </div>
+
 </section>
 
 <div style="text-align: center;">

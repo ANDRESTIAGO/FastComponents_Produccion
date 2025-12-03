@@ -1,6 +1,67 @@
 {% extends 'base.html' %}
 {% block title %}Iniciar Sesión{% endblock %}
 {% block content %}
+<section id="comparison-section">
+    <style>
+        /* Contenedor principal del card */
+        .login-card {
+            width: 1000px;
+            height: 550px;
+            margin: auto;
+            background: #2f3a4a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Centrar el contenido del formulario */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* Etiquetas */
+        .login-label {
+            color: #ab7633;
+            font-weight: bold;
+            margin-bottom: 5px;
+            margin-top: 15px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* Inputs centrados y amplios */
+        .login-input {
+            width: 70%;
+            max-width: 400px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Botón centrado */
+        .login-button {
+            background-color: #ab7633;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .login-button:hover {
+            background-color: #c6833a;
+        }
+    </style>
+
 <section id="hero">
     <div class="hero">
         <h1 class="hero-title">Iniciar Secion</h1>
@@ -9,29 +70,36 @@
 </section>
 
 {% if mensaje %}
-  <div class="alert alert-success">{{ mensaje }}</div>
+    <div class="alert alert-success" class="contenedor">{{ mensaje }}</div>
 {% endif %}
 
 {% if error %}
-  <div class="error">{{ error }}</div>
+<section id="Lo-que-ofresemos">
+  <div class="contenedor"">
+    <div class="error">{{ error }}</div>
+  </div>
+</section>
 {% endif %}
-<section id="comparison-section">
-        <div class="cards-container">
-                <div style="transition: none; transform: none; height: 500px;" class="card">
-                    <img src="../static/img/logo1.jpg" alt="Imagen del componente" class="card-image">
-                    <div class="card-content">
-                    <form method="post" action="/login">
-                      <label>Correo</label><br>
-                      <input style="width:268px;" type="text" name="correo" required><br><br>
-                      <label>Contraseña</label><br>
-                      <input style="width:268px;"  type="password" name="contraseña" required><br><br>
-                      <div style="display: flex; justify-content: center; align-items: center;">
-                        <button type="submit">Entrar</button>
-                      </div>
+ <div class="cards-container" style="transform: none !important; transition: none !important;">
+        <div class="card login-card" style="transform: none !important; transition: none !important;">
+            
+            <img src="../static/img/logo1.jpg" alt="Imagen del componente" class="card-image">
 
-                    </form>
-                </div>
+            <div class="card-content">
+                <form method="post" action="/login" class="login-form">
+
+                    <label class="login-label">Correo</label>
+                    <input type="text" name="correo" required class="login-input">
+
+                    <label class="login-label">Contraseña</label>
+                    <input type="password" name="contraseña" required class="login-input">
+
+                    <button type="submit" class="login-button">Entrar</button>
+
+                </form>
+            </div>
         </div>
+    </div>
 </section>
 <div style="text-align: center;">
     <p>¿No tienes cuenta? <a href="/registro">Regístrate</a></p>
