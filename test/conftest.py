@@ -59,10 +59,10 @@ def client(tmp_project_dir):
     pd.DataFrame(columns=["correo_usuario", "orden", "id", "nombre", "tipo", "marca", "modelo"]).to_csv("orden.csv", index=False)
     pd.DataFrame(columns=["orden", "id", "nombre", "tipo", "marca", "modelo"]).to_csv("eliminados.csv", index=False)
 
-    # Crear la app EXACTAMENTE igual que main.py
+    #    # Crear la app EXACTAMENTE igual que main.py
     app = create_app()
 
-    # Crear cliente de pruebas
-    client = TestClient(app)
+    # Crear cliente de pruebas SIN seguir redirecciones
+    client = TestClient(app, follow_redirects=False)
 
     yield client
